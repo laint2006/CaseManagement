@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Aperia.Core.Persistence.ValueConverters;
+namespace Aperia.Core.Persistence.Converters;
 
 /// <summary>
 /// The Enum Value Converter
 /// </summary>
 /// <typeparam name="TEnum">The type of the enum.</typeparam>
-/// <seealso cref="Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter{TEnum, String}" />
+/// <seealso cref="ValueConverter{TEnum, String}" />
 public class EnumValueConverter<TEnum> : ValueConverter<TEnum?, string?>
 {
     /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Aperia.Core.Application.Services;
+using Aperia.Core.Persistence.Converters;
 
 namespace Aperia.Core.Persistence;
 
@@ -9,6 +10,8 @@ namespace Aperia.Core.Persistence;
 public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
     where TContext : DbContext
 {
+    #region Properties
+
     /// <summary>
     /// The application context
     /// </summary>
@@ -25,9 +28,13 @@ public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
     protected TContext DbContext { get; }
 
     /// <summary>
-    /// The json serializer
+    /// Gets the outbox message converter.
     /// </summary>
-    protected IJsonSerializer JsonSerializer { get; }
+    protected IOutboxMessageConverter OutboxMessageConverter { get; }
+
+    #endregion
+
+    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseUnitOfWork{TContext}" /> class.
@@ -35,27 +42,45 @@ public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
     /// <param name="appContext">The application context.</param>
     /// <param name="dateTimeProvider">The date time provider.</param>
     /// <param name="dbContext">The database context.</param>
-    /// <param name="jsonSerializer">The json serializer.</param>
-    protected BaseUnitOfWork(IAppContext appContext, IDateTimeProvider dateTimeProvider, TContext dbContext, IJsonSerializer jsonSerializer)
+    /// <param name="outboxMessageConverter">The outbox message converter.</param>
+    protected BaseUnitOfWork(IAppContext appContext, IDateTimeProvider dateTimeProvider, TContext dbContext, IOutboxMessageConverter outboxMessageConverter)
     {
         this.AppContext = appContext;
         this.DateTimeProvider = dateTimeProvider;
         this.DbContext = dbContext;
-        this.JsonSerializer = jsonSerializer;
+        this.OutboxMessageConverter = outboxMessageConverter;
     }
+
+    #endregion
+
+    #region Public methods
 
     /// <summary>
     /// Saves the changes.
     /// </summary>
     /// <returns></returns>
-    public abstract int SaveChanges();
+    public virtual int SaveChanges()
+    {
+        this.UpdateAuditableEntities();
+
+        return this.DbContext.SaveChanges();
+    }
 
     /// <summary>
     /// Saves the changes asynchronous.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public abstract Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        this.UpdateAuditableEntities();
+
+        return await this.DbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    #endregion
+
+    #region Private methods
 
     /// <summary>
     /// Gets the outbox messages.
@@ -68,8 +93,6 @@ public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
             .Select(entry => entry.Entity)
             .ToList();
 
-        var currentTime = this.DateTimeProvider.Now;
-
         foreach (var entity in entities)
         {
             if (entity.DomainEvents.Count == 0)
@@ -79,8 +102,11 @@ public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
 
             foreach (var domainEvent in entity.DomainEvents)
             {
-                var payload = domainEvent.Payload is null ? null : this.JsonSerializer.Serialize(domainEvent.Payload);
-                var message = OutboxMessage.Create(domainEvent.EntityId, domainEvent.EventType, payload, currentTime);
+                var message = this.OutboxMessageConverter.Convert(entity, domainEvent);
+                if (message is null)
+                {
+                    continue;
+                }
 
                 yield return message;
             }
@@ -120,5 +146,7 @@ public abstract class BaseUnitOfWork<TContext> : IUnitOfWork
             }
         }
     }
+
+    #endregion
 
 }

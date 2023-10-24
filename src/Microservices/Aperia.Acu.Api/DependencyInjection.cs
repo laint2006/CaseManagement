@@ -3,6 +3,7 @@ using Aperia.Acu.Api.Repositories;
 using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
+using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using AppContext = Aperia.Core.Application.AppContext;
@@ -50,6 +51,7 @@ public static class DependencyInjection
         {
             options.UseSqlServer(configuration["ConnectionStrings:Acu"]);
         })
+        .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<ITriggerRepository, TriggerRepository>();
 

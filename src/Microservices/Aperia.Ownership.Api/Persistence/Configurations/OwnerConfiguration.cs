@@ -1,4 +1,4 @@
-﻿using Aperia.Core.Persistence.ValueConverters;
+﻿using Aperia.Core.Persistence.Converters;
 using Aperia.Ownership.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

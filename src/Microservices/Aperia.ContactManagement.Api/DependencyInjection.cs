@@ -5,6 +5,7 @@ using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
 using Aperia.Core.Messaging;
+using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using System.Reflection;
@@ -55,6 +56,7 @@ public static class DependencyInjection
         {
             options.UseSqlServer(configuration["ConnectionStrings:ContactManagement"]);
         })
+        .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<IContactRepository, ContactRepository>();
 
@@ -74,7 +76,7 @@ public static class DependencyInjection
             var jobKey = new JobKey(nameof(ProcessOutboxMessagesJob));
 
             configure.AddJob<ProcessOutboxMessagesJob>(jobKey)
-                .AddTrigger(trigger => trigger.ForJob(jobKey)
+                    .AddTrigger(trigger => trigger.ForJob(jobKey)
                     .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(10).RepeatForever()));
 
             configure.UseMicrosoftDependencyInjectionJobFactory();

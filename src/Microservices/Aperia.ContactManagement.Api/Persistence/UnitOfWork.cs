@@ -1,4 +1,5 @@
 ﻿using Aperia.Core.Application.Services;
+using Aperia.Core.Persistence.Converters;
 
 namespace Aperia.ContactManagement.Api.Persistence;
 
@@ -14,9 +15,9 @@ public class UnitOfWork : BaseUnitOfWork<ContactManagementContext>
     /// <param name="appContext">The application context.</param>
     /// <param name="dateTimeProvider">The date time provider.</param>
     /// <param name="dbContext">The database context.</param>
-    /// <param name="jsonSerializer">The json serializer.</param>
-    public UnitOfWork(IAppContext appContext, IDateTimeProvider dateTimeProvider, ContactManagementContext dbContext, IJsonSerializer jsonSerializer)
-        : base(appContext, dateTimeProvider, dbContext, jsonSerializer)
+    /// <param name="outboxMessageConverter">The outbox message converter.</param>
+    public UnitOfWork(IAppContext appContext, IDateTimeProvider dateTimeProvider, ContactManagementContext dbContext, IOutboxMessageConverter outboxMessageConverter)
+        : base(appContext, dateTimeProvider, dbContext, outboxMessageConverter)
     {
     }
 

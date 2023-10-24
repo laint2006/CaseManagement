@@ -1,5 +1,5 @@
 ﻿using Aperia.CaseManagement.Api.Entities;
-using Aperia.Core.Persistence.ValueConverters;
+using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,6 +1,7 @@
 ﻿using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
+using Aperia.Core.Persistence.Converters;
 using Aperia.SlaOla.Api.Persistence;
 using Aperia.SlaOla.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ public static class DependencyInjection
         {
             options.UseSqlServer(configuration["ConnectionStrings:SlaOla"]);
         })
+        .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<ILaRepository, LaRepository>();
 

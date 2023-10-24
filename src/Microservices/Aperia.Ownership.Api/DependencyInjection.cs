@@ -1,6 +1,7 @@
 ﻿using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
+using Aperia.Core.Persistence.Converters;
 using Aperia.Ownership.Api.Persistence;
 using Aperia.Ownership.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ public static class DependencyInjection
         {
             options.UseSqlServer(configuration["ConnectionStrings:Ownership"]);
         })
+        .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<IOwnerRepository, OwnerRepository>();
 

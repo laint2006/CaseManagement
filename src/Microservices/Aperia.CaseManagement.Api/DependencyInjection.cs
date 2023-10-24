@@ -7,6 +7,7 @@ using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
 using Aperia.Core.Messaging;
+using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Quartz;
@@ -60,6 +61,7 @@ public static class DependencyInjection
         {
             options.UseSqlServer(configuration["ConnectionStrings:CaseManagement"]);
         })
+        .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<IInquiryRepository, InquiryRepository>();
 
