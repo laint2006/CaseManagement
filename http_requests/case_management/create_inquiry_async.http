@@ -1,0 +1,12 @@
+@host=https://localhost:7133
+
+POST {{host}}/api/inquiry/async-create
+Content-Type: application/json
+
+{
+  "entityId": "12345678",
+  "status": "New",
+  "secondaryStatus": null,
+  "contactName": "John Locke",
+  "phoneNumber": "123455555"
+}

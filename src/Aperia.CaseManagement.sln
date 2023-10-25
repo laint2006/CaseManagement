@@ -31,6 +31,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aperia.Core.Persistence", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aperia.Core.Messaging", "Shared\Aperia.Core.Messaging\Aperia.Core.Messaging.csproj", "{F526E86F-A7DA-4FA0-A543-B9679861AC78}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "http_requests", "http_requests", "{B7549CA2-4D3D-4337-A71A-A1FDA47F6F07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "case_management", "case_management", "{93594358-7E64-418A-8113-C6D20742A942}"
+	ProjectSection(SolutionItems) = preProject
+		..\http_requests\case_management\create_inquiry.http = ..\http_requests\case_management\create_inquiry.http
+		..\http_requests\case_management\create_inquiry_async.http = ..\http_requests\case_management\create_inquiry_async.http
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +105,7 @@ Global
 		{A5EEF38C-5323-46C6-81BE-1404112EACF0} = {ADCE6306-1851-4199-A66B-55C59611F962}
 		{DCDBC98A-288F-4F43-8DF1-E51C1BD18FF0} = {66EC60C7-1DF3-4452-B820-C9CE7A7186B7}
 		{F526E86F-A7DA-4FA0-A543-B9679861AC78} = {66EC60C7-1DF3-4452-B820-C9CE7A7186B7}
+		{93594358-7E64-418A-8113-C6D20742A942} = {B7549CA2-4D3D-4337-A71A-A1FDA47F6F07}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BE651CAB-35D3-485E-A38C-019690F19B45}
