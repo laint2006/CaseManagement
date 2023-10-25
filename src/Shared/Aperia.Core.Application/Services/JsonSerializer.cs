@@ -19,6 +19,14 @@ namespace Aperia.Core.Application.Services
         };
 
         /// <summary>
+        /// Initializes the <see cref="JsonSerializer"/> class.
+        /// </summary>
+        static JsonSerializer()
+        {
+            DefaultOptions.Converters.Add(new JsonStringEnumConverter());
+        }
+
+        /// <summary>
         /// Serializes the value.
         /// </summary>
         /// <typeparam name="T"></typeparam>

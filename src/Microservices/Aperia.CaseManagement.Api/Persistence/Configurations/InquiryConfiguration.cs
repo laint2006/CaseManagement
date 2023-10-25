@@ -12,12 +12,11 @@ namespace Aperia.CaseManagement.Api.Persistence.Configurations
             entity.ToTable("Inquiry");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
             entity.Property(e => e.EntityId)
                 .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.InquiryNumber)
-                .HasMaxLength(15)
                 .IsUnicode(false);
             entity.Property(e => e.OwnerType)
                 .HasMaxLength(20)
@@ -33,8 +32,12 @@ namespace Aperia.CaseManagement.Api.Persistence.Configurations
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasConversion<EnumValueConverter<InquiryStatus>>();
-            entity.Property(e => e.StatusDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            entity.Property(e => e.StatusDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
+            entity.Property(e => e.UpdatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
         }
     }
 }

@@ -3,15 +3,14 @@ using Aperia.CaseManagement.Api.Models;
 using Aperia.CaseManagement.Api.Persistence;
 using Aperia.CaseManagement.Api.Repositories;
 using Aperia.CaseManagement.Api.Services;
-using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
 using Aperia.Core.Messaging;
+using Aperia.Core.Messaging.RabbitMq;
 using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Quartz;
-using System.Reflection;
 using AppContext = Aperia.Core.Application.AppContext;
 
 namespace Aperia.CaseManagement.Api;
@@ -29,18 +28,15 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        var assembly = typeof(DependencyInjection).Assembly;
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>()
             .AddSingleton<IJsonSerializer, JsonSerializer>()
             .AddScoped<IAppContext>(sp => new AppContext
             {
                 Name = configuration["AppSettings:AppName"] ?? "Aperia.CaseManagement.Api"
             })
-            .AddMediatR(options =>
-            {
-                options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-            })
-            .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-            .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
+            .AddMediator(assembly)
+            .AddFluentValidation(assembly)
             .AddHttpClients(configuration)
             .AddServices(configuration)
             .AddBackgroundJobs(configuration)
@@ -92,13 +88,31 @@ public static class DependencyInjection
     /// <returns></returns>
     private static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddOptions<RabbitMqPublisherSettings>()
+            .BindConfiguration("RabbitMqEventPublisherSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<RabbitMqConsumerSettings>()
+            .BindConfiguration("RabbitMqEventConsumerSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IEventPublisher, RabbitMqPublisher>();
+        services.AddHostedService<ProcessMessageBackgroundJob>();
+
+        var intervalInSeconds = configuration["ProcessOutboxMessagesJobSettings:IntervalInSeconds"] ?? "300";
         services.AddQuartz(configure =>
         {
             var jobKey = new JobKey(nameof(ProcessOutboxMessagesJob));
 
             configure.AddJob<ProcessOutboxMessagesJob>(jobKey)
                     .AddTrigger(trigger => trigger.ForJob(jobKey)
-                    .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(10).RepeatForever()));
+                    .WithSimpleSchedule(schedule =>
+                    {
+                        schedule.WithIntervalInSeconds(int.Parse(intervalInSeconds))
+                                .RepeatForever();
+                    }));
 
             configure.UseMicrosoftDependencyInjectionJobFactory();
         });
@@ -127,25 +141,25 @@ public static class DependencyInjection
         services.AddHttpClient("acu", (sp, httpClient) =>
         {
             var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
-            SetupHttpClient(sp, httpClient, apiSettings, apiSettings.AcuApi);
+            SetupHttpClient(httpClient, apiSettings, apiSettings.AcuApi);
         });
 
         services.AddHttpClient("contactManagement", (sp, httpClient) =>
         {
             var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
-            SetupHttpClient(sp, httpClient, apiSettings, apiSettings.ContactManagementApi);
+            SetupHttpClient(httpClient, apiSettings, apiSettings.ContactManagementApi);
         });
 
         services.AddHttpClient("ownership", (sp, httpClient) =>
         {
             var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
-            SetupHttpClient(sp, httpClient, apiSettings, apiSettings.OwnershipApi);
+            SetupHttpClient(httpClient, apiSettings, apiSettings.OwnershipApi);
         });
 
         services.AddHttpClient("slaola", (sp, httpClient) =>
         {
             var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
-            SetupHttpClient(sp, httpClient, apiSettings, apiSettings.SlaOlaApi);
+            SetupHttpClient(httpClient, apiSettings, apiSettings.SlaOlaApi);
         });
 
         return services;
@@ -154,11 +168,11 @@ public static class DependencyInjection
     /// <summary>
     /// Setups the HTTP client.
     /// </summary>
-    /// <param name="serviceProvider">The service provider.</param>
     /// <param name="httpClient">The HTTP client.</param>
     /// <param name="apiSettings">The API settings.</param>
     /// <param name="baseAddress">The base address.</param>
-    private static void SetupHttpClient(IServiceProvider serviceProvider, HttpClient httpClient, ApiSettings apiSettings, string? baseAddress)
+    /// <exception cref="System.ArgumentNullException">baseAddress</exception>
+    private static void SetupHttpClient(HttpClient httpClient, ApiSettings apiSettings, string? baseAddress)
     {
         if (string.IsNullOrWhiteSpace(baseAddress))
         {
@@ -167,7 +181,7 @@ public static class DependencyInjection
 
         httpClient.DefaultRequestHeaders.Add("User-Agent", "Aperia");
         httpClient.DefaultRequestHeaders.Add("X-RequestId", Guid.NewGuid().ToString());
-        httpClient.Timeout = TimeSpan.FromSeconds(10);
+        httpClient.Timeout = TimeSpan.FromSeconds(apiSettings.DefaultTimeoutInSeconds);
         httpClient.BaseAddress = new Uri(baseAddress);
     }
 

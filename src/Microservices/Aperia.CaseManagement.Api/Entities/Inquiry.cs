@@ -10,11 +10,6 @@ namespace Aperia.CaseManagement.Api.Entities;
 public class Inquiry : Entity<Guid>, IAuditableEntity
 {
     /// <summary>
-    /// Gets or sets the inquiry number.
-    /// </summary>
-    public string InquiryNumber { get; set; } = null!;
-
-    /// <summary>
     /// Gets or sets the source.
     /// </summary>
     public string Source { get; set; }
@@ -94,7 +89,6 @@ public class Inquiry : Entity<Guid>, IAuditableEntity
     public static Inquiry Create(string source, string? entityId, InquiryStatus status, string? secondaryStatus, DateTime statusDate)
     {
         var inquiry = new Inquiry(source, entityId, status, secondaryStatus, statusDate);
-        inquiry.AddDomainEvent(DomainEvent.Create("Inquiry.Created", inquiry.Id.ToString(), inquiry));
 
         return inquiry;
     }

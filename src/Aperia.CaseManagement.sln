@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aperia.Acu.Api", "Microserv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aperia.Core.Persistence", "Shared\Aperia.Core.Persistence\Aperia.Core.Persistence.csproj", "{DCDBC98A-288F-4F43-8DF1-E51C1BD18FF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aperia.Core.Messaging", "Shared\Aperia.Core.Messaging\Aperia.Core.Messaging.csproj", "{F526E86F-A7DA-4FA0-A543-B9679861AC78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aperia.Core.Messaging", "Shared\Aperia.Core.Messaging\Aperia.Core.Messaging.csproj", "{F526E86F-A7DA-4FA0-A543-B9679861AC78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

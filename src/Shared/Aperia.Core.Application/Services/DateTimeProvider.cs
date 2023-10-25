@@ -9,7 +9,7 @@ public class DateTimeProvider : IDateTimeProvider
     /// <summary>
     /// Gets the now.
     /// </summary>
-    public DateTime Now => DateTime.Now;
+    public DateTime Now => DateTime.UtcNow;
 
     /// <summary>
     /// The UTC now

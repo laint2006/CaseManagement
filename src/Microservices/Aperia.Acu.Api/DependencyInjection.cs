@@ -1,11 +1,13 @@
-﻿using Aperia.Acu.Api.Persistence;
+﻿using Aperia.Acu.Api.BackgroundJobs;
+using Aperia.Acu.Api.Models;
+using Aperia.Acu.Api.Persistence;
 using Aperia.Acu.Api.Repositories;
-using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
+using Aperia.Core.Messaging;
+using Aperia.Core.Messaging.RabbitMq;
 using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 using AppContext = Aperia.Core.Application.AppContext;
 
 namespace Aperia.Acu.Api;
@@ -23,18 +25,17 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        var assembly = typeof(DependencyInjection).Assembly;
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>()
                 .AddSingleton<IJsonSerializer, JsonSerializer>()
                 .AddScoped<IAppContext>(sp=> new AppContext
                 {
                     Name = configuration["AppSettings:AppName"] ?? "Aperia.Acu.Api"
                 })
-                .AddMediatR(options =>
-                {
-                    options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-                })
-                .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-                .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+                .AddMediator(assembly)
+                .AddFluentValidation(assembly)
+                .AddBackgroundJobs(configuration)
+                .AddRabbitMq(configuration);
 
         return services;
     }
@@ -54,6 +55,30 @@ public static class DependencyInjection
         .AddSingleton<IOutboxMessageConverter, OutboxMessageConverter>()
         .AddScoped<IUnitOfWork, UnitOfWork>()
         .AddScoped<ITriggerRepository, TriggerRepository>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the background jobs.
+    /// </summary>
+    /// <param name="services">The services.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns></returns>
+    private static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<RabbitMqPublisherSettings>()
+            .BindConfiguration("RabbitMqEventPublisherSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<RabbitMqConsumerSettings>()
+            .BindConfiguration("RabbitMqEventConsumerSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IEventPublisher, RabbitMqPublisher>();
+        services.AddHostedService<ProcessMessageBackgroundJob>();
 
         return services;
     }

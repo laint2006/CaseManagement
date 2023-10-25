@@ -1,14 +1,13 @@
 ﻿using Aperia.ContactManagement.Api.BackgroundJobs;
 using Aperia.ContactManagement.Api.Persistence;
 using Aperia.ContactManagement.Api.Repositories;
-using Aperia.Core.Application.Behaviors;
 using Aperia.Core.Application.Repositories;
 using Aperia.Core.Application.Services;
 using Aperia.Core.Messaging;
+using Aperia.Core.Messaging.RabbitMq;
 using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using System.Reflection;
 using AppContext = Aperia.Core.Application.AppContext;
 
 namespace Aperia.ContactManagement.Api;
@@ -26,18 +25,15 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        var assembly = typeof(DependencyInjection).Assembly;
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>()
                 .AddSingleton<IJsonSerializer, JsonSerializer>()
                 .AddScoped<IAppContext>(sp=> new AppContext
                 {
                     Name = configuration["AppSettings:AppName"] ?? "Aperia.ContactManagement.Api"
                 })
-                .AddMediatR(options =>
-                {
-                    options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-                })
-                .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-                .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
+                .AddMediator(assembly)
+                .AddFluentValidation(assembly)
                 .AddBackgroundJobs(configuration)
                 .AddRabbitMq(configuration);
 
@@ -71,13 +67,31 @@ public static class DependencyInjection
     /// <returns></returns>
     private static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddOptions<RabbitMqPublisherSettings>()
+            .BindConfiguration("RabbitMqEventPublisherSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<RabbitMqConsumerSettings>()
+            .BindConfiguration("RabbitMqEventConsumerSettings")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IEventPublisher, RabbitMqPublisher>();
+        services.AddHostedService<ProcessMessageBackgroundJob>();
+
+        var intervalInSeconds = configuration["ProcessOutboxMessagesJobSettings:IntervalInSeconds"] ?? "300";
         services.AddQuartz(configure =>
         {
             var jobKey = new JobKey(nameof(ProcessOutboxMessagesJob));
 
             configure.AddJob<ProcessOutboxMessagesJob>(jobKey)
-                    .AddTrigger(trigger => trigger.ForJob(jobKey)
-                    .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(10).RepeatForever()));
+                .AddTrigger(trigger => trigger.ForJob(jobKey)
+                    .WithSimpleSchedule(schedule =>
+                    {
+                        schedule.WithIntervalInSeconds(int.Parse(intervalInSeconds))
+                            .RepeatForever();
+                    }));
 
             configure.UseMicrosoftDependencyInjectionJobFactory();
         });

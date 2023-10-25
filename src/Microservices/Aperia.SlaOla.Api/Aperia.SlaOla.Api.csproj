@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\Aperia.Core.Application\Aperia.Core.Application.csproj" />
     <ProjectReference Include="..\..\Shared\Aperia.Core.Domain\Aperia.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\Shared\Aperia.Core.Messaging\Aperia.Core.Messaging.csproj" />
     <ProjectReference Include="..\..\Shared\Aperia.Core.Persistence\Aperia.Core.Persistence.csproj" />
     <ProjectReference Include="..\..\Shared\Aperia.Core.Presentation\Aperia.Core.Presentation.csproj" />
   </ItemGroup>

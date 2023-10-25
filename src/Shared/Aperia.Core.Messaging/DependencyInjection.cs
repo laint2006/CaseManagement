@@ -1,6 +1,7 @@
 ﻿using Aperia.Core.Messaging.RabbitMq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Aperia.Core.Messaging;
 
@@ -17,8 +18,30 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddRabbitMq(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IEventPublisher, RabbitMqPublisher>();
+        services.AddOptions<RabbitMqSettings>()
+            .BindConfiguration(RabbitMqSettings.ConfigurationSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddSingleton<IRabbitMqConnectionManager>(sp =>
+        {
+            var rabbitMqSettings = sp.GetRequiredService<IOptions<RabbitMqSettings>>().Value;
+            var factory = new ConnectionFactory
+            {
+                HostName = rabbitMqSettings.HostName,
+                VirtualHost = rabbitMqSettings.VirtualHost,
+                Port = rabbitMqSettings.Port,
+                UserName = rabbitMqSettings.UserName,
+                Password = rabbitMqSettings.Password,
+                DispatchConsumersAsync = rabbitMqSettings.UseAsyncDispatchConsumer
+            };
+
+            var logger = sp.GetRequiredService<ILogger<RabbitMqConnectionManager>>();
+
+            return new RabbitMqConnectionManager(factory, logger, rabbitMqSettings.RetryCount);
+        });
 
         return services;
     }
+
 }

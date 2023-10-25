@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Aperia.Core.Messaging.Models;
 
-namespace Aperia.Core.Messaging.Models
+/// <summary>
+/// The Publish Result
+/// </summary>
+public enum PublishResult
 {
-    public class PublishResult
-    {
-    }
+    /// <summary>
+    /// The failed
+    /// </summary>
+    Failed,
+
+    /// <summary>
+    /// The published
+    /// </summary>
+    Published
 }

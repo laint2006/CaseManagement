@@ -27,10 +27,10 @@ public class UnitOfWork : BaseUnitOfWork<CaseManagementContext>
     /// <returns></returns>
     public override int SaveChanges()
     {
+        this.UpdateAuditableEntities();
+
         var outboxMessages = this.GetOutboxMessages();
         this.DbContext.OutboxMessages.AddRange(outboxMessages);
-
-        this.UpdateAuditableEntities();
 
         return this.DbContext.SaveChanges();
     }
@@ -42,10 +42,10 @@ public class UnitOfWork : BaseUnitOfWork<CaseManagementContext>
     /// <returns></returns>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        this.UpdateAuditableEntities();
+
         var outboxMessages = this.GetOutboxMessages();
         await this.DbContext.OutboxMessages.AddRangeAsync(outboxMessages, cancellationToken);
-
-        this.UpdateAuditableEntities();
 
         return await this.DbContext.SaveChangesAsync(cancellationToken);
     }

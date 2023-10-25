@@ -11,6 +11,11 @@ public sealed class ApiSettings
     public const string ConfigurationSection = "ApiSettings";
 
     /// <summary>
+    /// Gets or sets the default timeout in seconds.
+    /// </summary>
+    public int DefaultTimeoutInSeconds { get; set; }
+
+    /// <summary>
     /// Gets or sets the acu API.
     /// </summary>
     public string? AcuApi { get; set; }

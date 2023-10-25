@@ -53,6 +53,16 @@ namespace Aperia.CaseManagement.Api.Models
         public Guid? ContactId { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the contact.
+        /// </summary>
+        public string ContactName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the contact phone.
+        /// </summary>
+        public string PhoneNumber { get; set; }
+
+        /// <summary>
         /// Gets the acu trigger identifier.
         /// </summary>
         public Guid? AcuTriggerId { get; internal set; }

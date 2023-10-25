@@ -18,6 +18,7 @@ namespace Aperia.Core.Persistence.Converters
         {
             WriteIndented = false,
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
                 Modifiers = { IgnoreDomainEvents }
@@ -28,6 +29,14 @@ namespace Aperia.Core.Persistence.Converters
         /// The date time provider
         /// </summary>
         private readonly IDateTimeProvider _dateTimeProvider;
+
+        /// <summary>
+        /// Initializes the <see cref="OutboxMessageConverter"/> class.
+        /// </summary>
+        static OutboxMessageConverter()
+        {
+            JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OutboxMessageConverter" /> class.
@@ -60,7 +69,7 @@ namespace Aperia.Core.Persistence.Converters
         {
             foreach (var propertyInfo in typeInfo.Properties)
             {
-                if ("DomainEvents".Equals(propertyInfo.PropertyType.Name, StringComparison.OrdinalIgnoreCase))
+                if ("DomainEvents".Equals(propertyInfo.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     propertyInfo.ShouldSerialize = static (_, _) => false;
                 }

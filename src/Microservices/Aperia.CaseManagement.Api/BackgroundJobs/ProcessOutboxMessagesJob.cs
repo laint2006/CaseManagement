@@ -15,6 +15,11 @@ namespace Aperia.CaseManagement.Api.BackgroundJobs;
 public class ProcessOutboxMessagesJob : IJob
 {
     /// <summary>
+    /// The application context
+    /// </summary>
+    private readonly IAppContext _appContext;
+
+    /// <summary>
     /// The database context
     /// </summary>
     private readonly CaseManagementContext _dbContext;
@@ -30,13 +35,15 @@ public class ProcessOutboxMessagesJob : IJob
     private readonly IDateTimeProvider _dateTimeProvider;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessOutboxMessagesJob"/> class.
+    /// Initializes a new instance of the <see cref="ProcessOutboxMessagesJob" /> class.
     /// </summary>
+    /// <param name="appContext">The application context.</param>
     /// <param name="dateTimeProvider">The date time provider.</param>
     /// <param name="dbContext">The database context.</param>
     /// <param name="publisher">The publisher.</param>
-    public ProcessOutboxMessagesJob(IDateTimeProvider dateTimeProvider, CaseManagementContext dbContext, IEventPublisher publisher)
+    public ProcessOutboxMessagesJob(IAppContext appContext, IDateTimeProvider dateTimeProvider, CaseManagementContext dbContext, IEventPublisher publisher)
     {
+        this._appContext = appContext;
         this._dbContext = dbContext;
         this._publisher = publisher;
         this._dateTimeProvider = dateTimeProvider;
@@ -66,7 +73,7 @@ public class ProcessOutboxMessagesJob : IJob
 
         foreach (var outboxMessage in messages)
         {
-            var @event =  Event.Create(outboxMessage);
+            var @event = Event.Create(this._appContext.Name, outboxMessage);
 
             await this._publisher.PublishAsync(@event, context.CancellationToken);
 

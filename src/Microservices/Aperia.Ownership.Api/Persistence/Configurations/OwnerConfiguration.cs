@@ -11,13 +11,17 @@ namespace Aperia.Ownership.Api.Persistence.Configurations
         {
             entity.ToTable("Owner");
 
-            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.OwnerType)
             .HasMaxLength(30)
             .IsUnicode(false)
             .HasConversion<EnumValueConverter<OwnerType>>();
-            entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
         }
     }
 }

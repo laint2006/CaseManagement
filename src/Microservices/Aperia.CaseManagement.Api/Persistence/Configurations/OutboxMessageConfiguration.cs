@@ -1,4 +1,5 @@
 ﻿using Aperia.Core.Domain.Entities;
+using Aperia.Core.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,7 +20,9 @@ namespace Aperia.CaseManagement.Api.Persistence.Configurations
             entity.ToTable("OutboxMessage");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
             entity.Property(e => e.EntityId)
                 .HasMaxLength(36)
                 .IsUnicode(false);
@@ -27,8 +30,12 @@ namespace Aperia.CaseManagement.Api.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.Payload).IsRequired();
-            entity.Property(e => e.ProcessedDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            entity.Property(e => e.ProcessedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
+            entity.Property(e => e.UpdatedDate)
+                .HasColumnType("datetime")
+                .HasConversion<UtcDateConverter>();
         }
     }
 }
