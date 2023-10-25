@@ -16,11 +16,6 @@ public class RabbitMqPublisherSettings
     public string ExchangeType { get; set; } = RabbitMQ.Client.ExchangeType.Fanout;
 
     /// <summary>
-    /// Gets or sets the name of the queue.
-    /// </summary>
-    public string QueueName { get; set; } = null!;
-
-    /// <summary>
     /// Gets or sets the routing key.
     /// </summary>
     public string RoutingKey { get; set; } = null!;
@@ -29,5 +24,10 @@ public class RabbitMqPublisherSettings
     /// Gets or sets the retry count.
     /// </summary>
     public int RetryCount { get; set; } = 5;
+
+    /// <summary>
+    /// Gets or sets the time to live in seconds.
+    /// </summary>
+    public int? TimeToLiveInSeconds { get; set; }
 
 }

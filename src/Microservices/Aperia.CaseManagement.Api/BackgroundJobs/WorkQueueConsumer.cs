@@ -5,23 +5,23 @@ using Microsoft.Extensions.Options;
 namespace Aperia.CaseManagement.Api.BackgroundJobs;
 
 /// <summary>
-/// The Process Message Background Job
+/// The Work Queue Consumer
 /// </summary>
 /// <seealso cref="Aperia.Core.Messaging.RabbitMq.AsyncRabbitMqConsumer" />
-public class ProcessMessageBackgroundJob : AsyncRabbitMqConsumer
+public class WorkQueueConsumer : AsyncRabbitMqConsumer
 {
     /// <summary>
     /// The logger
     /// </summary>
-    private readonly ILogger<ProcessMessageBackgroundJob> _logger;
+    private readonly ILogger<WorkQueueConsumer> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMessageBackgroundJob" /> class.
+    /// Initializes a new instance of the <see cref="WorkQueueConsumer" /> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
     /// <param name="connectionManager">The connection manager.</param>
     /// <param name="consumerSettings">The consumer settings.</param>
-    public ProcessMessageBackgroundJob(ILogger<ProcessMessageBackgroundJob> logger, IRabbitMqConnectionManager connectionManager, IOptions<RabbitMqConsumerSettings> consumerSettings)
+    public WorkQueueConsumer(ILogger<WorkQueueConsumer> logger, IRabbitMqConnectionManager connectionManager, IOptions<RabbitMqConsumerSettings> consumerSettings)
         : base(logger, connectionManager, consumerSettings)
     {
         this._logger = logger;

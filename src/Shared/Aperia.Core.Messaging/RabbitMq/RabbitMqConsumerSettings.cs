@@ -25,5 +25,15 @@
         /// </summary>
         public string RoutingKey { get; set; } = null!;
 
+        /// <summary>
+        /// Gets or sets the name of dead letter exchange.
+        /// </summary>
+        public string? DeadLetterExchangeName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the dead letter routing key.
+        /// </summary>
+        public string? DeadLetterRoutingKey { get; set; }
+
     }
 }

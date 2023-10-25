@@ -78,7 +78,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IEventPublisher, RabbitMqPublisher>();
-        services.AddHostedService<ProcessMessageBackgroundJob>();
+        services.AddHostedService<WorkQueueConsumer>();
 
         var intervalInSeconds = configuration["ProcessOutboxMessagesJobSettings:IntervalInSeconds"] ?? "300";
         services.AddQuartz(configure =>

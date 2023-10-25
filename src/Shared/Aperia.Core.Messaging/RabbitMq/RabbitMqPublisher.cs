@@ -2,8 +2,8 @@
 using ErrorOr;
 using Microsoft.Extensions.Options;
 using System.Text;
-using System.Text.Json.Serialization.Metadata;
 using System.Text.Json.Serialization;
+using System.Threading.Channels;
 
 namespace Aperia.Core.Messaging.RabbitMq;
 
@@ -80,12 +80,25 @@ public class RabbitMqPublisher : IEventPublisher
         policy.Execute(() =>
         {
             var properties = channel.CreateBasicProperties();
+            properties.MessageId = @event.Id.ToString();
             properties.DeliveryMode = 2;
+            properties.ContentType = "text/json";
+            properties.Persistent = true;
 
-            channel.BasicPublish(this._publisherSettings.ExchangeName, this._publisherSettings.RoutingKey, true, properties, body);
+            if (this._publisherSettings.TimeToLiveInSeconds is > 0)
+            {
+                properties.Expiration = (this._publisherSettings.TimeToLiveInSeconds * 1000).ToString();
+            }
+
+            var routingKey = string.IsNullOrWhiteSpace(this._publisherSettings.RoutingKey) ? @event.EventType : this._publisherSettings.RoutingKey;
+
+            channel.ConfirmSelect(); 
+            channel.BasicPublish(this._publisherSettings.ExchangeName, routingKey, true, properties, body);
 #if DEBUG
             _logger.LogInformation("Publishing event to RabbitMQ: {EventId}. Body: {Body}", @event.Id, Encoding.UTF8.GetString(body));
 #endif
+            channel.WaitForConfirmsOrDie();
+            channel.ConfirmSelect();
         });
 
         await Task.CompletedTask;
@@ -99,9 +112,7 @@ public class RabbitMqPublisher : IEventPublisher
     /// <param name="channel">The channel.</param>
     private void EnsureExchangeIsExists(IModel channel)
     {
-        channel.ExchangeDeclare(this._publisherSettings.ExchangeName, this._publisherSettings.ExchangeType);
-        //channel.QueueDeclare(this._publisherSettings.QueueName, false, false, false, null);
-        //channel.QueueBind(this._publisherSettings.QueueName, this._publisherSettings.ExchangeName, this._publisherSettings.RoutingKey, null);
+        channel.ExchangeDeclare(this._publisherSettings.ExchangeName, this._publisherSettings.ExchangeType, true);
     }
 
 }

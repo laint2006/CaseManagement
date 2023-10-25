@@ -3,7 +3,6 @@ using Aperia.Core.Application.Services;
 using Aperia.Core.Messaging;
 using Aperia.Core.Messaging.RabbitMq;
 using Aperia.Core.Persistence.Converters;
-using Aperia.Ownership.Api.BackgroundJobs;
 using Aperia.Ownership.Api.Persistence;
 using Aperia.Ownership.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -77,7 +76,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IEventPublisher, RabbitMqPublisher>();
-        services.AddHostedService<ProcessMessageBackgroundJob>();
+        //services.AddHostedService<ProcessMessageBackgroundJob>();
 
         return services;
     }

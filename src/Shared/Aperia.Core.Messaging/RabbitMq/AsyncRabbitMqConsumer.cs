@@ -84,8 +84,19 @@ public abstract class AsyncRabbitMqConsumer : IHostedService
     /// <param name="channel">The channel.</param>
     private void EnsureQueueIsExists(IModel channel)
     {
-        channel.ExchangeDeclare(this._consumerSettings.ExchangeName, this._consumerSettings.ExchangeType);
-        channel.QueueDeclare(this._consumerSettings.QueueName, false, false, false, null);
+        var parameters = new Dictionary<string, object>();
+        if (!string.IsNullOrWhiteSpace(this._consumerSettings.DeadLetterExchangeName))
+        {
+            parameters.Add("x-dead-letter-exchange", this._consumerSettings.DeadLetterExchangeName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(this._consumerSettings.DeadLetterRoutingKey))
+        {
+            parameters.Add("x-dead-letter-routing-key", this._consumerSettings.DeadLetterRoutingKey);
+        }
+
+        channel.ExchangeDeclare(this._consumerSettings.ExchangeName, this._consumerSettings.ExchangeType, true);
+        channel.QueueDeclare(this._consumerSettings.QueueName, false, false, false, parameters.Count == 0 ? null : parameters);
         channel.QueueBind(this._consumerSettings.QueueName, this._consumerSettings.ExchangeName, this._consumerSettings.RoutingKey);
     }
 
@@ -157,15 +168,15 @@ public abstract class AsyncRabbitMqConsumer : IHostedService
             }
 
             await this.HandleMessageAsync(@event);
+
+            _consumerChannel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error Processing message \"{Message}\"", message);
-        }
 
-        // Even on exception we take the message off the queue.
-        // In a REAL WORLD app this should be handled with a Dead Letter Exchange (DLX). For more information see: https://www.rabbitmq.com/dlx.html
-        _consumerChannel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
+            _consumerChannel?.BasicNack(eventArgs.DeliveryTag, false, false);
+        }
     }
 
     /// <summary>

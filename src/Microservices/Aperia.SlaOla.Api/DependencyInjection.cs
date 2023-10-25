@@ -77,7 +77,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IEventPublisher, RabbitMqPublisher>();
-        services.AddHostedService<ProcessMessageBackgroundJob>();
+        services.AddHostedService<WorkQueueConsumer>();
 
         return services;
     }
